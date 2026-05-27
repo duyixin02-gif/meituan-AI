@@ -1,0 +1,24 @@
+{
+  "source_workbook_pattern": "meituan-nail-evaluation-data-xlsx",
+  "generated_files": [
+    "data/processed/image_assets.csv",
+    "data/processed/image_pairs.csv",
+    "data/processed/image_pairs.jsonl",
+    "data/processed/tryon_pairs.csv",
+    "data/processed/style_catalog.csv"
+  ],
+  "image_directories": {
+    "hand": "data/raw/images/hands",
+    "style_original": "data/raw/images/nail_styles_original",
+    "style_enhanced": "data/raw/images/nail_styles_enhanced"
+  },
+  "asset_count": 63,
+  "unique_url_count": 63,
+  "pair_count": 25,
+  "tryon_pair_count": 13,
+  "notes": [
+    "Only source URLs from the provided workbook are used.",
+    "No synthetic test images are created.",
+    "Temporary files should be removed after validation if created in future experiments."
+  ]
+}

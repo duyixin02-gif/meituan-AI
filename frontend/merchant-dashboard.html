@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>商家 AI 运营工作台</title>
+    <link rel="stylesheet" href="./merchant-dashboard.css">
+  </head>
+  <body>
+    <main class="dashboard-shell">
+      <header class="dashboard-topbar">
+        <div class="brand-block">
+          <div>
+            <p class="eyebrow">Nail Try-on Merchant Ops</p>
+            <h1>商家 AI 运营工作台</h1>
+            <p class="headline-copy">把试戴热度变成主推款、活动方案和内容文案</p>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <a class="ghost-button nav-link" href="./index.html">用户端</a>
+          <label class="field">
+            <span>商家</span>
+            <select id="merchantSelect">
+              <option value="merchant_001">merchant_001</option>
+              <option value="merchant_002">merchant_002</option>
+              <option value="merchant_003">merchant_003</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>窗口</span>
+            <select id="windowSelect">
+              <option value="7">近 7 天</option>
+              <option value="14">近 14 天</option>
+              <option value="30">近 30 天</option>
+            </select>
+          </label>
+          <button id="refreshButton" type="button">刷新</button>
+          <button id="seedButton" class="ghost-button" type="button">生成演示数据</button>
+        </div>
+      </header>
+
+      <nav class="page-tabs" aria-label="后台页面">
+        <button class="tab-button is-active" type="button" data-view="command">经营指挥台</button>
+        <button class="tab-button" type="button" data-view="styles">款式管理</button>
+        <button class="tab-button" type="button" data-view="content">内容活动</button>
+        <button class="tab-button" type="button" data-view="platform">平台趋势</button>
+      </nav>
+
+      <section id="commandView" class="page-view is-active" aria-label="经营指挥台">
+        <section class="ops-hero">
+          <article class="today-card">
+            <p class="eyebrow">Today Brief</p>
+            <h2 id="briefTitle">等待数据加载</h2>
+            <p id="briefCopy">点击“生成演示数据”后可以快速看到完整运营建议。</p>
+            <div id="briefActions" class="brief-actions"></div>
+          </article>
+          <article class="featured-card">
+            <div class="section-head featured-head">
+              <div>
+                <h2>今日主推款</h2>
+                <span id="featuredReason">根据点击、试戴和收藏综合排序</span>
+              </div>
+              <button id="promoteFeaturedButton" type="button">设为主推</button>
+            </div>
+            <div id="featuredStyle" class="featured-style"></div>
+          </article>
+        </section>
+
+        <section class="metric-grid" aria-label="核心指标">
+          <article class="metric-card" data-metric="click">
+            <div class="metric-title">
+              <span>点击量</span>
+              <small id="clickGrowth">+0.0%</small>
+            </div>
+            <strong id="clickCount">0</strong>
+            <p class="metric-caption">款式曝光后的点击行为</p>
+            <div id="clickDetail" class="metric-detail" aria-hidden="true"></div>
+          </article>
+          <article class="metric-card" data-metric="tryon">
+            <div class="metric-title">
+              <span>试戴量</span>
+              <small id="tryonRate">0.0%</small>
+            </div>
+            <strong id="tryonCount">0</strong>
+            <p class="metric-caption">进入试戴流程的用户数</p>
+            <div id="tryonDetail" class="metric-detail" aria-hidden="true"></div>
+          </article>
+          <article class="metric-card" data-metric="favorite">
+            <div class="metric-title">
+              <span>收藏量</span>
+              <small id="favoriteRate">0.0%</small>
+            </div>
+            <strong id="favoriteCount">0</strong>
+            <p class="metric-caption">产生偏好的高意向行为</p>
+            <div id="favoriteDetail" class="metric-detail" aria-hidden="true"></div>
+          </article>
+          <article class="metric-card" data-metric="conversion">
+            <div class="metric-title">
+              <span>转化量</span>
+              <small id="conversionRate">0.0%</small>
+            </div>
+            <strong id="conversionCount">0</strong>
+            <p class="metric-caption">预约、下单或到店转化</p>
+            <div id="conversionDetail" class="metric-detail" aria-hidden="true"></div>
+          </article>
+        </section>
+
+        <section class="dashboard-grid">
+          <article class="panel chart-panel">
+            <div class="panel-head">
+              <div>
+                <h2>款式表现</h2>
+                <p>点击量 / 试戴量对比</p>
+              </div>
+              <span id="recordsCount">0 条记录</span>
+            </div>
+            <canvas id="styleChart" width="720" height="360"></canvas>
+          </article>
+
+          <article class="panel chart-panel">
+            <div class="panel-head">
+              <div>
+                <h2>标签热度</h2>
+                <p>按标签聚合的试戴兴趣</p>
+              </div>
+              <span>点击增长</span>
+            </div>
+            <canvas id="tagChart" width="720" height="360"></canvas>
+          </article>
+
+          <article class="panel chart-panel wide-panel">
+            <div class="panel-head">
+              <div>
+                <h2>每日趋势</h2>
+                <p>点击 / 试戴走势</p>
+              </div>
+              <span>最近窗口</span>
+            </div>
+            <canvas id="trendChart" width="720" height="320"></canvas>
+          </article>
+        </section>
+      </section>
+
+      <section id="stylesView" class="page-view" aria-label="款式管理">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>款式运营列表</h2>
+              <p>给每个款式打上可执行的运营状态</p>
+            </div>
+            <span id="styleOpsSummary">待加载</span>
+          </div>
+          <div id="styleOpsList" class="style-ops-list"></div>
+        </section>
+      </section>
+
+      <section id="contentView" class="page-view" aria-label="内容活动">
+        <section class="campaign-grid">
+          <article class="panel campaign-panel">
+            <div class="panel-head">
+              <div>
+                <h2>一键活动方案</h2>
+                <p>面向美团店铺、到店套餐和节日促销</p>
+              </div>
+              <button id="generateCampaignButton" type="button">生成方案</button>
+            </div>
+            <div id="campaignPlan" class="campaign-plan"></div>
+          </article>
+
+          <article class="panel campaign-panel">
+            <div class="panel-head">
+              <div>
+                <h2>内容文案</h2>
+                <p>可直接用于店铺动态和种草内容</p>
+              </div>
+              <button id="copyContentButton" class="ghost-button" type="button">复制文案</button>
+            </div>
+            <div id="contentCopies" class="content-copies"></div>
+          </article>
+        </section>
+      </section>
+
+      <section id="platformView" class="page-view" aria-label="平台趋势">
+        <section class="platform-hero">
+          <div>
+            <p class="eyebrow">Aggregated Platform Signals</p>
+            <h2>平台供给与趋势调度中心</h2>
+            <p id="privacyLabel">聚合脱敏后识别趋势机会、供给缺口和平台动作</p>
+          </div>
+          <div id="platformSummary" class="platform-summary"></div>
+        </section>
+
+        <section id="platformInsightGrid" class="platform-insight-grid" aria-label="平台洞察总览"></section>
+
+        <section class="platform-grid">
+          <article class="panel opportunity-panel wide-panel">
+            <div class="panel-head">
+              <div>
+                <h2>趋势机会池</h2>
+                <p>把上升标签转成可行动的平台机会</p>
+              </div>
+              <span>平台运营建议</span>
+            </div>
+            <div id="platformOpportunityPool" class="opportunity-list"></div>
+          </article>
+        </section>
+
+        <section class="platform-grid">
+          <article class="panel supply-panel">
+            <div class="panel-head">
+              <div>
+                <h2>供给缺口</h2>
+                <p>需求热度强但供给表达不足的方向</p>
+              </div>
+              <span>上新调度</span>
+            </div>
+            <div id="supplyGapList" class="supply-gap-list"></div>
+          </article>
+
+          <article class="panel action-panel">
+            <div class="panel-head">
+              <div>
+                <h2>平台推荐策略</h2>
+                <p>首页、搜索、专题和商家触达动作</p>
+              </div>
+              <span>可执行动作</span>
+            </div>
+            <div id="platformActionList" class="platform-action-list"></div>
+          </article>
+        </section>
+
+        <section class="platform-grid">
+          <article class="panel trend-panel">
+            <div class="panel-head">
+              <div>
+                <h2>上升款式标签</h2>
+                <p>跨商家聚合后的标签热度</p>
+              </div>
+              <span>隐私保护</span>
+            </div>
+            <div id="platformTagTrends" class="trend-list"></div>
+          </article>
+
+          <article class="panel trend-panel">
+            <div class="panel-head">
+              <div>
+                <h2>上升场景标签</h2>
+                <p>用户场景偏好的匿名趋势</p>
+              </div>
+              <span>聚合视图</span>
+            </div>
+            <div id="platformScenarioTrends" class="trend-list"></div>
+          </article>
+        </section>
+      </section>
+    </main>
+
+    <div id="assistantWidget" class="assistant-widget" style="left: calc(100vw - 128px); top: calc(100vh - 122px);">
+      <button id="assistantFab" class="assistant-fab" type="button" aria-label="打开自动化策略助手">
+        <span class="assistant-face">
+          <span class="assistant-eyes"></span>
+          <span class="assistant-smile"></span>
+        </span>
+        <span class="assistant-badge">策略</span>
+        <span class="assistant-spark">AI</span>
+      </button>
+      <section id="assistantDialog" class="assistant-dialog" aria-label="自动化策略助手对话窗">
+        <div class="assistant-dialog-head">
+          <div>
+            <h2>自动化策略助手</h2>
+            <p id="assistantStatus">规则策略引擎</p>
+          </div>
+          <button id="assistantCloseButton" class="assistant-close" type="button" aria-label="关闭自动化策略助手">×</button>
+        </div>
+        <div class="assistant-dialog-body">
+          <div class="assistant-message assistant-message-bot">
+            我会结合当前商家的经营数据和平台匿名趋势，生成主推款、活动方案和风险提示。
+          </div>
+          <div id="assistantQuickQuestions" class="assistant-quick-questions">
+            <button type="button" data-question="compare">本期对比</button>
+            <button type="button" data-question="trend">近期变化</button>
+            <button type="button" data-question="strategy">生成策略</button>
+          </div>
+          <div id="assistantConversation" class="assistant-conversation"></div>
+          <div id="strategyList" class="strategy-list assistant-strategy-list">
+            <div class="empty-state">点击下方按钮生成策略建议</div>
+          </div>
+        </div>
+        <div class="assistant-dialog-foot">
+          <button id="strategyButton" type="button">生成策略</button>
+        </div>
+      </section>
+    </div>
+
+    <script src="./merchant-dashboard.js"></script>
+  </body>
+</html>

@@ -1,0 +1,49 @@
+{
+  "asset_count": 63,
+  "pair_count": 25,
+  "pair_with_hand": 13,
+  "pair_without_hand": 12,
+  "missing_file_count": 0,
+  "unreadable_file_count": 0,
+  "by_type": {
+    "hand": {
+      "count": 13,
+      "extensions": [
+        ".png"
+      ],
+      "sizes": [
+        "896x1200"
+      ]
+    },
+    "style_original": {
+      "count": 25,
+      "extensions": [
+        ".jpg",
+        ".png"
+      ],
+      "sizes": [
+        "1024x1024",
+        "1024x1040",
+        "1056x992",
+        "1088x960",
+        "1120x928",
+        "1170x1172",
+        "2048x2048",
+        "832x1248",
+        "864x1184",
+        "928x1120",
+        "960x1088",
+        "992x1056"
+      ]
+    },
+    "style_enhanced": {
+      "count": 25,
+      "extensions": [
+        ".png"
+      ],
+      "sizes": [
+        "896x1200"
+      ]
+    }
+  }
+}
