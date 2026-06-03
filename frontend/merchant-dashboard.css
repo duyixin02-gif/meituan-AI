@@ -1,21 +1,24 @@
 :root {
   color-scheme: light;
-  --bg: #fffbe8;
+  --bg: #fff7fb;
   --surface: #ffffff;
   --surface-strong: #ffffff;
-  --soft: #ffffff;
-  --line: #f2df93;
-  --text: #111111;
-  --muted: #4a4a4a;
-  --accent: #ffd100;
-  --accent-strong: #f5bd00;
+  --soft: #fff8fc;
+  --line: #efd7e5;
+  --text: #2a1420;
+  --muted: #735d6d;
+  --accent: #f2c14e;
+  --accent-strong: #d99a14;
+  --rose: #db2777;
+  --teal: #2f7d6d;
+  --blue: #496fa7;
   --warning: #9a4b00;
-  --shadow: 0 14px 36px rgba(17, 17, 17, 0.08);
-  --shadow-hover: 0 20px 46px rgba(17, 17, 17, 0.12);
-  --radius-xl: 28px;
-  --radius-lg: 22px;
-  --radius-md: 16px;
-  --radius-sm: 12px;
+  --shadow: 0 14px 38px rgba(131, 24, 67, 0.09);
+  --shadow-hover: 0 22px 56px rgba(131, 24, 67, 0.14);
+  --radius-xl: 22px;
+  --radius-lg: 18px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
 }
 
 * {
@@ -25,9 +28,11 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background: #fffbe8;
+  background:
+    radial-gradient(circle at 8% -4%, rgba(249, 168, 212, 0.28), transparent 32%),
+    linear-gradient(135deg, #fff7fb 0%, #fffaf0 48%, #f8fbff 100%);
   color: var(--text);
-  font-family: Arial, "Microsoft YaHei", sans-serif;
+  font-family: Inter, Arial, "Microsoft YaHei", sans-serif;
 }
 
 button,
@@ -53,15 +58,18 @@ select {
   justify-content: space-between;
   gap: 20px;
   width: 100vw;
-  min-height: 68px;
+  min-height: 74px;
   margin: -20px calc(50% - 50vw) 0;
   padding: 10px max(20px, calc((100vw - 1440px) / 2 + 20px));
   border: 0;
-  border-bottom: 1px solid #e1b900;
+  border-bottom: 1px solid rgba(239, 215, 229, 0.88);
   border-radius: 0;
-  background: var(--accent);
-  box-shadow: 0 10px 22px rgba(17, 17, 17, 0.1);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(255, 246, 222, 0.9)),
+    #fff;
+  box-shadow: 0 10px 28px rgba(131, 24, 67, 0.08);
   color: var(--text);
+  backdrop-filter: blur(16px);
 }
 
 .brand-block {
@@ -79,7 +87,7 @@ p {
 
 .eyebrow {
   margin-bottom: 5px;
-  color: #111;
+  color: var(--rose);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0;
@@ -89,16 +97,18 @@ p {
 h1 {
   font-size: 20px;
   line-height: 1.15;
+  font-family: Georgia, "Times New Roman", "Microsoft YaHei", serif;
 }
 
 h2 {
   font-size: 17px;
   line-height: 1.2;
+  font-family: Georgia, "Times New Roman", "Microsoft YaHei", serif;
 }
 
 .headline-copy {
   margin-top: 4px;
-  color: rgba(17, 17, 17, 0.72);
+  color: var(--muted);
   font-size: 12px;
 }
 
@@ -116,10 +126,10 @@ h2 {
   gap: 6px;
   min-height: 38px;
   padding: 4px 6px 4px 12px;
-  border: 1px solid rgba(17, 17, 17, 0.12);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  color: #111;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--text);
   font-size: 13px;
 }
 
@@ -137,21 +147,21 @@ select {
   min-height: 30px;
   padding: 0 28px 0 10px;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: #fff;
-  color: #111;
+  color: var(--text);
 }
 
 button {
   min-height: 38px;
   padding: 0 16px;
-  border-color: #111;
-  border-radius: 999px;
-  background: #111;
+  border-color: var(--rose);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--rose), #ef5da8);
   color: #fff;
   cursor: pointer;
   font-weight: 800;
-  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease;
 }
 
 .topbar-actions button {
@@ -159,9 +169,16 @@ button {
 }
 
 button:hover {
-  background: #2a2a2a;
-  box-shadow: 0 8px 18px rgba(17, 17, 17, 0.12);
+  background: linear-gradient(135deg, #be185d, #db2777);
+  box-shadow: 0 10px 22px rgba(219, 39, 119, 0.18);
   transform: translateY(-1px);
+}
+
+button:focus-visible,
+a:focus-visible,
+select:focus-visible {
+  outline: 3px solid rgba(219, 39, 119, 0.24);
+  outline-offset: 2px;
 }
 
 button:disabled {
@@ -171,14 +188,14 @@ button:disabled {
 
 .ghost-button {
   background: #fff;
-  color: #111;
-  border-color: rgba(17, 17, 17, 0.22);
+  color: var(--text);
+  border-color: var(--line);
 }
 
 .ghost-button:hover {
-  color: #111;
-  border-color: rgba(17, 17, 17, 0.32);
-  background: #fff8c9;
+  color: var(--text);
+  border-color: var(--accent-strong);
+  background: #fff6de;
 }
 
 .page-tabs {
@@ -186,17 +203,17 @@ button:disabled {
   align-self: flex-start;
   gap: 6px;
   padding: 6px;
-  border: 1px solid rgba(240, 217, 133, 0.88);
-  border-radius: 999px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 10px 24px rgba(17, 17, 17, 0.06);
+  box-shadow: 0 10px 24px rgba(131, 24, 67, 0.06);
 }
 
 .tab-button {
   min-height: 38px;
   padding: 0 20px;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--muted);
   box-shadow: none;
@@ -204,8 +221,8 @@ button:disabled {
 
 .tab-button:hover,
 .tab-button.is-active {
-  background: var(--accent);
-  color: #111;
+  background: linear-gradient(135deg, #fff6de, #fce7f3);
+  color: var(--text);
   box-shadow: none;
 }
 
@@ -216,7 +233,7 @@ button:disabled {
 }
 
 .assistant-dialog-foot button {
-  background: var(--accent);
+  background: linear-gradient(135deg, var(--accent), #f6d978);
   border-color: var(--accent-strong);
 }
 
@@ -1541,4 +1558,410 @@ button:disabled {
     grid-column: 1 / -1;
     grid-template-columns: repeat(2, auto);
   }
+}
+
+/* Visual polish layer: keep the dashboard calm, scannable, and role-specific. */
+.today-card {
+  background:
+    linear-gradient(135deg, rgba(252, 231, 243, 0.72), rgba(255, 246, 222, 0.76)),
+    #fff;
+}
+
+.brief-actions span,
+.featured-tags span,
+.status-row em,
+.metric-title small,
+.product-tags span,
+.confidence {
+  border-radius: var(--radius-sm);
+}
+
+.brief-actions span {
+  border: 1px solid #f2c5dc;
+  background: #fff;
+  color: var(--rose);
+}
+
+.featured-tags span,
+.product-tags span,
+.tag-chip.is-active,
+.tag-chip:hover {
+  background: #fff8fc;
+  color: var(--rose);
+}
+
+.featured-metrics div,
+.campaign-card dl div,
+.opportunity-card dl div,
+.platform-summary div,
+.featured-image-wrap,
+.product-mini-card img,
+.tag-match-card img {
+  background: #fff8fc;
+}
+
+.style-ops-card,
+.campaign-card,
+.copy-card,
+.product-mini-card,
+.tag-match-card,
+.trend-item,
+.strategy-item,
+.empty-state,
+.platform-insight-card,
+.opportunity-card,
+.supply-gap-card,
+.platform-action-card {
+  border-color: var(--line);
+  border-radius: var(--radius-md);
+}
+
+.metric-card,
+.panel,
+.platform-hero,
+.today-card,
+.featured-card {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+}
+
+.metric-card:hover {
+  border-color: #f2c5dc;
+  box-shadow: var(--shadow-hover);
+}
+
+.metric-title small {
+  background: rgba(47, 125, 109, 0.1);
+  color: var(--teal);
+}
+
+.metric-detail {
+  border-color: rgba(242, 193, 78, 0.55);
+  background: rgba(42, 20, 32, 0.94);
+}
+
+.metric-detail strong {
+  color: var(--accent);
+}
+
+.panel-head {
+  background: linear-gradient(180deg, #fff, #fff8fc);
+}
+
+.trend-bar {
+  background: #f7e8ef;
+}
+
+.trend-bar span {
+  background: linear-gradient(90deg, var(--rose), var(--accent));
+}
+
+.tag-chip {
+  border-color: var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.assistant-fab {
+  border-color: var(--rose);
+  background:
+    radial-gradient(circle at 32% 24%, #fff7bf 0%, transparent 28%),
+    linear-gradient(135deg, var(--accent) 0%, #f6d978 100%);
+  box-shadow: 0 18px 38px rgba(131, 24, 67, 0.18);
+}
+
+.assistant-dialog {
+  border-color: var(--line);
+  box-shadow: 0 24px 64px rgba(131, 24, 67, 0.18);
+}
+
+.assistant-dialog-head,
+.assistant-dialog-foot {
+  background: linear-gradient(135deg, #fff8fc, #fff6de);
+}
+
+.assistant-message-bot {
+  background: #fff8fc;
+}
+
+.assistant-quick-questions button {
+  border-color: var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.assistant-quick-questions button:hover {
+  background: #fff6de;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+  }
+}
+
+/* Professional analytics theme for the merchant workspace. */
+:root {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-strong: #f8fafc;
+  --soft: #f1f5f9;
+  --line: #e2e8f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --accent: #f59e0b;
+  --accent-strong: #d97706;
+  --rose: #1e40af;
+  --teal: #0f766e;
+  --blue: #2563eb;
+  --warning: #b45309;
+  --shadow: 0 12px 32px rgba(15, 23, 42, 0.07);
+  --shadow-hover: 0 18px 44px rgba(15, 23, 42, 0.11);
+  --font-ui: "Segoe UI", Inter, "Microsoft YaHei", Arial, sans-serif;
+  --font-data: "Segoe UI", "Roboto Mono", Consolas, monospace;
+}
+
+body {
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  color: var(--text);
+  font-family: var(--font-ui);
+  letter-spacing: 0;
+}
+
+.dashboard-shell {
+  gap: 14px;
+}
+
+.dashboard-topbar {
+  min-height: 70px;
+  border-bottom-color: var(--line);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.eyebrow {
+  color: var(--blue);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+h1,
+h2 {
+  font-family: var(--font-ui);
+  font-weight: 750;
+  letter-spacing: 0;
+}
+
+h1 {
+  font-size: 19px;
+}
+
+h2 {
+  font-size: 16px;
+}
+
+.headline-copy,
+.panel-head p,
+.metric-caption,
+.trend-meta,
+.trend-foot,
+.strategy-meta,
+.reason-list,
+.risk-list,
+.assistant-explanation,
+.platform-hero p:not(.eyebrow),
+.platform-insight-card p,
+.opportunity-card p,
+.supply-gap-card p,
+.platform-action-card p,
+.featured-copy p {
+  color: var(--muted);
+}
+
+button {
+  border-color: var(--blue);
+  background: var(--blue);
+  font-weight: 700;
+}
+
+button:hover {
+  background: #1d4ed8;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.18);
+}
+
+.ghost-button {
+  border-color: var(--line);
+  background: #fff;
+  color: var(--text);
+}
+
+.ghost-button:hover {
+  border-color: #cbd5e1;
+  background: var(--soft);
+}
+
+.field,
+select {
+  border-color: var(--line);
+  background: #fff;
+  color: var(--text);
+}
+
+.page-tabs {
+  border-color: var(--line);
+  background: #fff;
+  box-shadow: none;
+}
+
+.tab-button {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.tab-button:hover,
+.tab-button.is-active {
+  background: #e0ecff;
+  color: #1e40af;
+}
+
+.today-card,
+.featured-card,
+.metric-card,
+.panel,
+.platform-hero,
+.platform-insight-card,
+.opportunity-card,
+.supply-gap-card,
+.platform-action-card,
+.style-ops-card,
+.campaign-card,
+.copy-card,
+.trend-item,
+.strategy-item,
+.empty-state {
+  border-color: var(--line);
+  background: #fff;
+  box-shadow: var(--shadow);
+  backdrop-filter: none;
+}
+
+.today-card {
+  min-height: 190px;
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+}
+
+.today-card h2 {
+  color: #0f172a;
+  font-size: 26px;
+}
+
+.brief-actions span,
+.featured-tags span,
+.product-tags span,
+.status-row em,
+.confidence {
+  border: 1px solid #dbeafe;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.metric-card {
+  min-height: 136px;
+  padding: 16px;
+}
+
+.metric-card:hover {
+  border-color: #bfdbfe;
+  box-shadow: var(--shadow-hover);
+}
+
+.metric-title span,
+.panel-head span,
+#assistantStatus {
+  color: var(--muted);
+}
+
+.metric-title small {
+  background: #ecfdf5;
+  color: var(--teal);
+}
+
+.metric-title small.is-down {
+  background: #fff7ed;
+  color: var(--warning);
+}
+
+.metric-card strong,
+.platform-insight-card strong,
+.platform-summary strong,
+.featured-metrics dd {
+  color: var(--text);
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.metric-detail {
+  border-color: #1e293b;
+  background: rgba(15, 23, 42, 0.96);
+}
+
+.metric-detail strong {
+  color: #93c5fd;
+}
+
+.panel-head {
+  min-height: 58px;
+  background: #fff;
+}
+
+.chart-panel canvas {
+  height: 300px;
+}
+
+.featured-metrics div,
+.campaign-card dl div,
+.opportunity-card dl div,
+.platform-summary div,
+.featured-image-wrap,
+.product-mini-card img,
+.tag-match-card img {
+  background: var(--soft);
+}
+
+.trend-bar {
+  background: #e2e8f0;
+}
+
+.trend-bar span {
+  background: linear-gradient(90deg, #2563eb, #0f766e);
+}
+
+.tag-chip {
+  border-color: var(--line);
+  background: #fff;
+  color: var(--muted);
+}
+
+.tag-chip:hover,
+.tag-chip.is-active {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.assistant-dialog,
+.assistant-dialog-head,
+.assistant-dialog-foot,
+.assistant-message-bot {
+  border-color: var(--line);
+  background: #fff;
+}
+
+.assistant-fab {
+  border-color: #1e40af;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  box-shadow: 0 18px 38px rgba(30, 64, 175, 0.16);
 }

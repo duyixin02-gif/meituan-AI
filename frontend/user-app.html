@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>用户端 - 美甲 AI 试戴</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="workspace" aria-label="美甲试戴工作区">
+        <header class="topbar">
+          <div class="brand-block">
+            <span class="brand-mark">AI Nail Studio</span>
+            <h1>用户端美甲 AI 试戴</h1>
+            <p id="statusText">上传手部照片，选择右侧款式开始生成试戴效果</p>
+          </div>
+          <div class="topbar-actions">
+            <a class="ghost-button" href="./index.html">平台入口</a>
+            <a class="ghost-button" href="./merchant-login.html">商家端</a>
+            <label class="upload-button">
+              <input id="handUpload" type="file" accept="image/*">
+              <span>上传手图</span>
+            </label>
+            <button id="exportEventsButton" class="ghost-button" type="button">导出记录</button>
+          </div>
+        </header>
+
+        <div class="quick-flow" aria-label="试戴流程">
+          <span class="flow-step is-active">1 选手图</span>
+          <span class="flow-step">2 选款式</span>
+          <span class="flow-step">3 看效果</span>
+          <span class="flow-step">4 收藏预约</span>
+        </div>
+
+        <div class="preview-grid">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <h2>用户手图</h2>
+                <span>支持上传照片，也可以使用示例图快速演示</span>
+              </div>
+              <button id="useDemoButton" type="button">使用示例</button>
+            </div>
+            <div class="image-stage">
+              <img id="handPreview" alt="用户上传的手部照片">
+              <div id="emptyHand" class="empty-state">等待上传</div>
+            </div>
+          </section>
+
+          <section class="panel result-panel">
+            <div class="panel-head">
+              <div>
+                <h2>试戴结果</h2>
+                <span id="selectedStyleLabel">未选择款式</span>
+              </div>
+              <div class="result-actions">
+                <button id="compareButton" class="mini-button" type="button" disabled>加入对比</button>
+                <button id="favoriteButton" class="mini-button" type="button" disabled>收藏</button>
+                <button id="appointmentButton" class="mini-button primary" type="button" disabled>预约</button>
+              </div>
+            </div>
+            <div class="image-stage">
+              <canvas id="resultCanvas" class="is-hidden" width="896" height="1200" aria-label="AI 融合结果"></canvas>
+              <img id="aiResultImage" alt="AI 生成的美甲试戴效果">
+              <div id="emptyResult" class="empty-state">选择款式后生成</div>
+              <div id="progressOverlay" class="progress-overlay is-hidden" aria-live="polite">
+                <div class="progress-card">
+                  <div class="progress-copy">
+                    <span id="progressLabel">正在生成试戴效果</span>
+                    <strong id="progressValue">0%</strong>
+                  </div>
+                  <div class="progress-track">
+                    <div id="progressBar" class="progress-bar"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section class="comparison-panel" aria-label="多款对比">
+          <div class="section-head">
+            <div>
+              <h2>候选款池</h2>
+              <span>最多保留 4 张结果，加入后自动生成两两对比</span>
+            </div>
+            <div class="section-actions">
+              <button id="openCompareDialogButton" class="text-button" type="button" disabled>查看智能对比</button>
+              <button id="clearCompareButton" class="text-button" type="button">清空</button>
+            </div>
+          </div>
+          <div id="compareList" class="compare-list">
+            <div id="emptyCompare" class="compare-empty">把喜欢的试戴结果加入对比</div>
+          </div>
+        </section>
+
+        <section class="compare-insight-panel" aria-label="智能选款对比">
+          <div class="section-head">
+            <div>
+              <h2>智能选款对比</h2>
+              <span id="compareInsightHint">选择至少 2 个候选款后生成对比建议</span>
+            </div>
+          </div>
+          <div id="compareInsightBody" class="compare-insight-body">
+            <div class="compare-insight-empty">先把 2 个以上试戴结果加入候选款池</div>
+          </div>
+        </section>
+
+        <section class="history-panel" aria-label="本次试戴历史">
+          <div class="history-head">
+            <h2>本次试戴历史</h2>
+            <span id="historyCount">0 张</span>
+          </div>
+          <div id="historyList" class="history-list">
+            <div id="emptyHistory" class="history-empty">生成后的效果图会临时保存在这里</div>
+          </div>
+        </section>
+      </section>
+
+      <aside class="style-sidebar" aria-label="可试戴美甲款式">
+        <div class="sidebar-head">
+          <div>
+            <h2>可试戴款式</h2>
+            <span id="styleCount">加载中</span>
+          </div>
+          <span id="favoriteCount" class="favorite-counter">0 收藏</span>
+        </div>
+
+        <div class="filter-bar" aria-label="款式筛选">
+          <button class="filter-chip is-active" type="button" data-filter="all">全部</button>
+          <button class="filter-chip" type="button" data-filter="daily">通勤</button>
+          <button class="filter-chip" type="button" data-filter="sweet">甜美</button>
+          <button class="filter-chip" type="button" data-filter="french">法式</button>
+          <button class="filter-chip" type="button" data-filter="party">派对</button>
+          <button class="filter-chip" type="button" data-filter="luxury">高级感</button>
+        </div>
+
+        <div id="styleList" class="style-list"></div>
+
+        <section class="style-detail" aria-label="款式详情">
+          <div class="section-head">
+            <div>
+              <h2>款式详情</h2>
+              <span id="detailHint">选择款式后查看</span>
+            </div>
+          </div>
+          <div id="styleDetailBody" class="style-detail-body">
+            <div class="detail-empty">还没有选中款式</div>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <dialog id="appointmentDialog" class="appointment-dialog">
+      <form id="appointmentForm" method="dialog">
+        <div class="dialog-head">
+          <div>
+            <h2>预约美甲服务</h2>
+            <span id="appointmentStyleLabel">未选择款式</span>
+          </div>
+          <button id="appointmentCloseButton" class="icon-button" value="cancel" type="button" aria-label="关闭">×</button>
+        </div>
+        <label>
+          <span>门店</span>
+          <select id="shopSelect">
+            <option>美团优选美甲·国贸店</option>
+            <option>美团优选美甲·望京店</option>
+            <option>美团优选美甲·五道口店</option>
+          </select>
+        </label>
+        <label>
+          <span>时间</span>
+          <select id="timeSelect">
+            <option>今天 18:30</option>
+            <option>明天 12:00</option>
+            <option>明天 19:00</option>
+            <option>周末 14:30</option>
+          </select>
+        </label>
+        <label>
+          <span>手机号</span>
+          <input id="phoneInput" type="tel" placeholder="用于接收预约确认">
+        </label>
+        <div class="dialog-actions">
+          <button class="ghost-button" type="button" id="appointmentCancelButton">取消</button>
+          <button class="upload-button" type="submit">提交预约意向</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="compareDialog" class="compare-dialog">
+      <div class="dialog-head">
+        <div>
+          <h2>智能选款对比</h2>
+          <span id="compareDialogHint">选择至少 2 个候选款后生成对比建议</span>
+        </div>
+        <button id="compareDialogCloseButton" class="icon-button" type="button" aria-label="关闭">×</button>
+      </div>
+      <div id="compareDialogBody" class="compare-dialog-body">
+        <div class="compare-insight-empty">先把 2 个以上试戴结果加入候选款池</div>
+      </div>
+    </dialog>
+
+    <script src="./assets/catalog.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

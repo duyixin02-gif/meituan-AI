@@ -11,6 +11,15 @@ from pathlib import Path
 from typing import Any
 
 from merchant_ops_store import MerchantOpsStore
+from strategy_schema import (
+    ExpectedMetric,
+    StrategyAction,
+    StrategyRecommendation,
+    StrategySignal,
+    normalize_strategy_recommendation,
+    validate_strategy_recommendation,
+)
+from strategy_scoring import StrategyScoringEngine
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -250,7 +259,7 @@ class OpsAnalyticsService:
             )
         return sorted(
             result,
-            key=lambda item: (item["clickGrowthRate"], item["tryonRate"], item["clickCount"]),
+            key=StrategyScoringEngine().style_sort_key,
             reverse=True,
         )[:12]
 
@@ -273,7 +282,7 @@ class OpsAnalyticsService:
             )
         return sorted(
             result,
-            key=lambda item: (item["clickGrowthRate"], item["tryonRate"], item["clickCount"]),
+            key=StrategyScoringEngine().tag_sort_key,
             reverse=True,
         )[:12]
 
@@ -354,9 +363,12 @@ class OpsAnalyticsService:
 
 
 class StrategyAgent:
+    def __init__(self, scoring: StrategyScoringEngine | None = None) -> None:
+        self.scoring = scoring or StrategyScoringEngine()
+
     def generate(self, dashboard: dict[str, Any], platform: dict[str, Any]) -> list[dict[str, Any]]:
-        styles = dashboard.get("stylePerformance", [])
-        tags = dashboard.get("tagPerformance", [])
+        styles = self.scoring.rank_styles(dashboard.get("stylePerformance", []))
+        tags = self.scoring.rank_tags(dashboard.get("tagPerformance", []))
         platform_tags = platform.get("risingTags", [])
         platform_tag_names = {item.get("tag") for item in platform_tags}
         recommendations: list[dict[str, Any]] = []
@@ -371,88 +383,73 @@ class StrategyAgent:
             if matched_tags:
                 reasons.append(f"该款式标签 {', '.join(matched_tags)} 与平台匿名上升趋势一致。")
             recommendations.append(
-                {
-                    "strategyType": "featured_style",
-                    "title": "设置试戴页主推款式",
-                    "action": {
-                        "type": "set_featured_style",
-                        "styleId": best["styleId"],
-                        "priority": 1,
-                        "durationDays": 3,
-                    },
-                    "reason": reasons,
-                    "risk": ["建议先进行 3 天短周期观察，避免样本量较小时过度调整。"],
-                    "expectedMetric": {
-                        "primary": "tryonRate",
-                        "secondary": "favoriteRate",
-                    },
-                    "confidence": self._confidence(best),
-                }
+                StrategyRecommendation(
+                    strategyType="featured_style",
+                    title="设置试戴页主推款式",
+                    action=StrategyAction(
+                        type="set_featured_style",
+                        styleId=best["styleId"],
+                        priority=1,
+                        durationDays=3,
+                    ),
+                    reason=reasons,
+                    risk=["建议先进行 3 天短周期观察，避免样本量较小时过度调整。"],
+                    expectedMetric=ExpectedMetric(primary="tryonRate", secondary="favoriteRate"),
+                    confidence=self.scoring.confidence(StrategySignal.from_style(best)),
+                ).to_dict()
             )
 
         if tags:
             tag = tags[0]
             recommendations.append(
-                {
-                    "strategyType": "tag_campaign",
-                    "title": f"围绕“{tag['tag']}”组织运营文案",
-                    "action": {
-                        "type": "promote_tag",
-                        "tag": tag["tag"],
-                        "durationDays": 5,
-                    },
-                    "reason": [
+                StrategyRecommendation(
+                    strategyType="tag_campaign",
+                    title=f"围绕“{tag['tag']}”组织运营文案",
+                    action=StrategyAction(
+                        type="promote_tag",
+                        tag=tag["tag"],
+                        durationDays=5,
+                    ),
+                    reason=[
                         f"店内“{tag['tag']}”标签点击量为 {tag['clickCount']}，增长率为 {tag['clickGrowthRate']:.1%}。",
                         "可将该标签用于主推款筛选、活动标题和试戴页排序。",
                     ],
-                    "risk": ["标签热度需要结合库存、服务时长和客单价人工复核。"],
-                    "expectedMetric": {
-                        "primary": "clickRate",
-                        "secondary": "conversionRate",
-                    },
-                    "confidence": "medium",
-                }
+                    risk=["标签热度需要结合库存、服务时长和客单价人工复核。"],
+                    expectedMetric=ExpectedMetric(primary="clickRate", secondary="conversionRate"),
+                    confidence="medium",
+                ).to_dict()
             )
 
         if not recommendations:
             recommendations.append(
-                {
-                    "strategyType": "data_collection",
-                    "title": "继续积累运营数据",
-                    "action": {
-                        "type": "collect_more_events",
-                        "durationDays": 7,
-                    },
-                    "reason": ["当前商家样本不足，暂不建议自动调整主推款式。"],
-                    "risk": ["数据不足时生成策略容易波动。"],
-                    "expectedMetric": {
-                        "primary": "clickCount",
-                        "secondary": "tryonCount",
-                    },
-                    "confidence": "low",
-                }
+                StrategyRecommendation(
+                    strategyType="data_collection",
+                    title="继续积累运营数据",
+                    action=StrategyAction(type="collect_more_events", durationDays=7),
+                    reason=["当前商家样本不足，暂不建议自动调整主推款式。"],
+                    risk=["数据不足时生成策略容易波动。"],
+                    expectedMetric=ExpectedMetric(primary="clickCount", secondary="tryonCount"),
+                    confidence="low",
+                ).to_dict()
             )
         return recommendations
-
-    def _confidence(self, style: dict[str, Any]) -> str:
-        if style.get("clickCount", 0) >= 30 and style.get("tryonRate", 0) >= 0.2:
-            return "high"
-        if style.get("clickCount", 0) >= 10:
-            return "medium"
-        return "low"
-
 
 class SafetyReviewAgent:
     def review(self, recommendations: list[dict[str, Any]]) -> list[dict[str, Any]]:
         reviewed = []
         blocked_words = ["其他商家", "附近商家", "竞品店", "merchant_"]
         for recommendation in recommendations:
-            safe = json.loads(json.dumps(recommendation, ensure_ascii=False))
+            safe = normalize_strategy_recommendation(
+                json.loads(json.dumps(recommendation, ensure_ascii=False))
+            )
             text = json.dumps(safe, ensure_ascii=False)
+            schema_errors = validate_strategy_recommendation(safe)
             safe["safety"] = {
-                "passed": not any(word in text for word in blocked_words),
+                "passed": not schema_errors and not any(word in text for word in blocked_words),
                 "policy": "No other merchant raw data or merchant identifiers may be exposed.",
             }
+            if schema_errors:
+                safe["safety"]["schemaErrors"] = schema_errors
             reviewed.append(safe)
         return reviewed
 

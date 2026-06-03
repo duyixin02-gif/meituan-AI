@@ -1,4 +1,12 @@
 const API_BASE = "http://127.0.0.1:8000";
+const CHART_COLORS = {
+  text: "#475569",
+  strongText: "#0f172a",
+  axis: "#e2e8f0",
+  track: "#e0ecff",
+  primary: "#2563eb",
+  secondary: "#0f766e",
+};
 
 const STYLE_PROFILES = [
   { name: "通勤裸感", tags: ["通勤", "短甲", "低饱和"], price: 168, role: "引流款" },
@@ -79,10 +87,36 @@ const els = {
 };
 
 async function init() {
+  hydrateMerchantFromLogin();
   await loadCatalog();
   bindEvents();
   await refreshDashboard();
   renderCampaign();
+}
+
+function hydrateMerchantFromLogin() {
+  const params = new URLSearchParams(window.location.search);
+  const merchantFromUrl = params.get("merchant");
+  const loginSession = loadLoginSession();
+  const merchantId = merchantFromUrl || loginSession?.username || "";
+  if (merchantId) {
+    state.merchantId = merchantId;
+  }
+  if (els.merchantSelect && merchantId) {
+    const exists = Array.from(els.merchantSelect.options).some((option) => option.value === merchantId);
+    if (!exists) {
+      els.merchantSelect.add(new Option(merchantId, merchantId));
+    }
+    els.merchantSelect.value = merchantId;
+  }
+}
+
+function loadLoginSession() {
+  try {
+    return JSON.parse(sessionStorage.getItem("merchantLoginSession") || "null");
+  } catch {
+    return null;
+  }
 }
 
 async function loadCatalog() {
@@ -812,11 +846,11 @@ function renderBarChart(canvas, rows, options) {
     const value = item[options.valueKey] || 0;
     const secondary = item[options.secondaryKey] || 0;
     const barWidth = Math.max(4, (value / maxValue) * chartWidth);
-    ctx.fillStyle = "#4a4a4a";
+    ctx.fillStyle = CHART_COLORS.text;
     ctx.fillText(String(item[options.labelKey]), 14, y + barHeight / 2);
-    roundRect(ctx, left, y, chartWidth, barHeight, 11, "#ffe9a3");
-    roundRect(ctx, left, y, barWidth, barHeight, 11, "#ffd100");
-    ctx.fillStyle = "#111";
+    roundRect(ctx, left, y, chartWidth, barHeight, 11, CHART_COLORS.track);
+    roundRect(ctx, left, y, barWidth, barHeight, 11, CHART_COLORS.primary);
+    ctx.fillStyle = CHART_COLORS.strongText;
     ctx.fillText(`${formatNumber(value)} / ${formatNumber(secondary)}`, left + Math.min(barWidth + 8, chartWidth - 84), y + barHeight / 2);
   });
 }
@@ -839,12 +873,12 @@ function renderLineChart(canvas, rows) {
   const plotHeight = height - top - bottom;
   const maxValue = Math.max(...rows.flatMap((item) => [item.clickCount || 0, item.tryonCount || 0]), 1);
   drawAxis(ctx, left, top, plotWidth, plotHeight);
-  drawLine(ctx, rows, "clickCount", "#ffd100", left, top, plotWidth, plotHeight, maxValue);
-  drawLine(ctx, rows, "tryonCount", "#b75c00", left, top, plotWidth, plotHeight, maxValue);
-  ctx.fillStyle = "#4a4a4a";
+  drawLine(ctx, rows, "clickCount", CHART_COLORS.primary, left, top, plotWidth, plotHeight, maxValue);
+  drawLine(ctx, rows, "tryonCount", CHART_COLORS.secondary, left, top, plotWidth, plotHeight, maxValue);
+  ctx.fillStyle = CHART_COLORS.text;
   ctx.font = "12px Arial";
   ctx.fillText("点击", left, height - 16);
-  ctx.fillStyle = "#b75c00";
+  ctx.fillStyle = CHART_COLORS.secondary;
   ctx.fillText("试戴", left + 48, height - 16);
 }
 
@@ -864,7 +898,7 @@ function drawLine(ctx, rows, key, color, left, top, plotWidth, plotHeight, maxVa
 }
 
 function drawAxis(ctx, left, top, width, height) {
-  ctx.strokeStyle = "#f0d985";
+  ctx.strokeStyle = CHART_COLORS.axis;
   ctx.lineWidth = 1;
   ctx.strokeRect(left, top, width, height);
 }
@@ -895,7 +929,7 @@ function clearCanvas(canvas, text) {
 }
 
 function drawEmpty(ctx, width, height, text) {
-  ctx.fillStyle = "#4a4a4a";
+  ctx.fillStyle = CHART_COLORS.text;
   ctx.font = "14px Arial";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";

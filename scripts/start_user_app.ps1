@@ -27,7 +27,7 @@ $existing = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue 
   Select-Object -First 1
 
 if ($existing) {
-  "Server already listening: http://127.0.0.1:$Port/frontend/index.html"
+  "Server already listening: http://127.0.0.1:$Port/frontend/user-app.html"
   "PID: $($existing.OwningProcess)"
   exit 0
 }
@@ -75,5 +75,5 @@ if (-not $listening) {
   throw "Server process started but port $Port is not listening. $err"
 }
 
-"Started: http://127.0.0.1:$Port/frontend/index.html"
+"Started: http://127.0.0.1:$Port/frontend/user-app.html"
 "PID: $($process.Id)"

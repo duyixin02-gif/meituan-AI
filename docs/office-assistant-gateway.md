@@ -46,6 +46,7 @@ POST http://127.0.0.1:8000/api/assistant/message
 ## 支持的意图
 
 - `generate_strategy`：生成自动策略建议。
+- `clean_data`：清洗原始点击/试戴事件，生成结构化特征和数据摘要。
 - `explain_strategy`：解释某条策略为什么成立。
 - `generate_campaign`：把策略转成活动方案和文案。
 - `accept_strategy`：记录商家采纳动作。

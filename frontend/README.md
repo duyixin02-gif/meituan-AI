@@ -16,18 +16,24 @@
 - 运营建议
 - 活动文案生成
 
-## 本地试戴页面
+## 本地页面入口
 
-当前已提供离线优先的用户侧试戴页面：
+当前前端已按角色拆分：
 
 - `index.html`
+- `user-app.html`
 - `styles.css`
 - `app.js`
+- `merchant-dashboard.html`
+- `merchant-dashboard.css`
+- `merchant-dashboard.js`
 - `assets/catalog.js`
 
-直接用浏览器打开 `frontend/index.html` 即可本地试用。
+直接用浏览器打开 `frontend/index.html` 会先进入平台入口，再选择用户端或商家端。
 
-当前能力：
+用户端可直接打开 `frontend/user-app.html`。商家端可直接打开 `frontend/merchant-dashboard.html`。
+
+用户端当前能力：
 
 - 上传手部照片。
 - 右侧滑动浏览可试戴款式。

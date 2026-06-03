@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>商家登录 - 美甲 AI 运营工作台</title>
+    <link rel="stylesheet" href="./merchant-login.css">
+  </head>
+  <body>
+    <main class="login-shell">
+      <section class="login-visual" aria-label="商家运营能力预览">
+        <nav class="login-nav" aria-label="页面导航">
+          <a href="./index.html">平台入口</a>
+          <a href="./user-app.html">用户端</a>
+        </nav>
+
+        <div class="visual-copy">
+          <p class="eyebrow">Merchant Analytics</p>
+          <h1>用试戴数据驱动美甲门店经营</h1>
+          <p>查看款式热度、用户偏好、收藏预约转化和平台趋势，把每一次 AI 试戴变成更清晰的运营决策。</p>
+        </div>
+
+        <div class="visual-board" aria-hidden="true">
+          <article class="kpi-card">
+            <span>近 7 天试戴</span>
+            <strong>1,248</strong>
+            <em>+18.4%</em>
+          </article>
+          <article class="kpi-card">
+            <span>预约转化</span>
+            <strong>12.8%</strong>
+            <em>+3.2%</em>
+          </article>
+          <div class="trend-card">
+            <span>热门标签</span>
+            <div><i style="width: 86%"></i><b>法式显白</b></div>
+            <div><i style="width: 72%"></i><b>猫眼高级感</b></div>
+            <div><i style="width: 58%"></i><b>通勤裸感</b></div>
+          </div>
+          <figure class="image-card image-card-hand">
+            <img src="../data/raw/images/hands/hand_002.png" alt="">
+          </figure>
+          <figure class="image-card image-card-style">
+            <img src="../data/raw/images/nail_styles_enhanced/style_003_enhanced.png" alt="">
+          </figure>
+        </div>
+      </section>
+
+      <section class="login-panel" aria-label="商家登录">
+        <form id="loginForm" class="login-card" action="./merchant-dashboard.html" method="get" novalidate>
+          <div class="login-card-head">
+            <p class="eyebrow">Sign in</p>
+            <h2>登录商家版</h2>
+            <p>请输入商家账号和密码查看运营工作台。</p>
+          </div>
+
+          <label class="field">
+            <span>用户名</span>
+            <input id="usernameInput" name="merchant" autocomplete="username" value="merchant_001" placeholder="例如 merchant_001">
+          </label>
+
+          <label class="field">
+            <span>密码</span>
+            <div class="password-field">
+              <input id="passwordInput" name="password" type="password" autocomplete="current-password" value="1234567" placeholder="请输入密码">
+              <button id="togglePasswordButton" type="button" aria-label="显示密码">显示</button>
+            </div>
+          </label>
+
+          <div class="form-row">
+            <label class="remember-field">
+              <input id="rememberInput" type="checkbox">
+              <span>记住账号</span>
+            </label>
+            <button id="forgotButton" class="link-button" type="button">忘记密码？</button>
+          </div>
+
+          <p id="formMessage" class="form-message" role="status" aria-live="polite"></p>
+
+          <button class="submit-button" type="submit">登录工作台</button>
+          <a class="demo-login-link" href="./merchant-dashboard.html?merchant=merchant_001">使用演示账号直接进入</a>
+
+          <div class="login-help">
+            <span>演示账号：merchant_001</span>
+            <span>演示密码：1234567</span>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <dialog id="forgotDialog" class="forgot-dialog">
+      <form id="forgotForm" method="dialog">
+        <div class="dialog-head">
+          <div>
+            <h2>找回密码</h2>
+            <p>输入用户名或绑定手机号，我们会发送重置指引。</p>
+          </div>
+          <button id="forgotCloseButton" type="button" aria-label="关闭">×</button>
+        </div>
+        <label class="field">
+          <span>账号 / 手机号</span>
+          <input id="recoverInput" autocomplete="username" placeholder="merchant_001 或手机号">
+        </label>
+        <p id="recoverMessage" class="form-message" role="status" aria-live="polite"></p>
+        <div class="dialog-actions">
+          <button id="forgotCancelButton" class="secondary-button" type="button">取消</button>
+          <button class="submit-button" type="submit">发送重置指引</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="./merchant-login.js"></script>
+  </body>
+</html>

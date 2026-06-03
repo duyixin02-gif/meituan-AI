@@ -8,3 +8,4 @@
 - `data-dictionary.md`：数据字段说明。
 - `api-design.md`：接口设计。
 - `product-flow.md`：用户端与商户端流程。
+- `mysql-data-model.md`：MySQL 表结构与表关系设计草案。
