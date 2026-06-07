@@ -10,6 +10,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 MERCHANT_OPS_LOG = ROOT / "backend" / "data" / "merchant_ops_test_records.jsonl"
+MERCHANT_STYLE_TAGS = ROOT / "backend" / "data" / "merchant_style_tags.json"
 
 
 def utc_now() -> str:
@@ -118,3 +119,79 @@ class MerchantOpsStore:
         if not isinstance(value, list):
             return []
         return [str(item) for item in value if str(item).strip()]
+
+
+class MerchantStyleTagStore:
+    """Persist user-facing style labels chosen from merchant operations."""
+
+    def __init__(self, path: Path = MERCHANT_STYLE_TAGS) -> None:
+        self.path = path
+
+    def list_tags(self, merchant_id: str = "merchant_001") -> dict[str, Any]:
+        data = self._read()
+        merchant = data.get(merchant_id) if isinstance(data.get(merchant_id), dict) else {}
+        styles = merchant.get("styles") if isinstance(merchant.get("styles"), dict) else {}
+        return {
+            "ok": True,
+            "merchantId": merchant_id,
+            "styles": styles,
+            "updatedAt": merchant.get("updatedAt") or "",
+        }
+
+    def upsert_style_tags(self, merchant_id: str, style_id: str, tags: dict[str, Any]) -> dict[str, Any]:
+        safe_merchant_id = str(merchant_id or "merchant_001")
+        safe_style_id = str(style_id or "").strip()
+        if not safe_style_id:
+            raise ValueError("styleId is required")
+
+        data = self._read()
+        merchant = data.setdefault(safe_merchant_id, {"styles": {}})
+        if not isinstance(merchant, dict):
+            merchant = {"styles": {}}
+            data[safe_merchant_id] = merchant
+        styles = merchant.setdefault("styles", {})
+        if not isinstance(styles, dict):
+            styles = {}
+            merchant["styles"] = styles
+
+        current = styles.get(safe_style_id) if isinstance(styles.get(safe_style_id), dict) else {}
+        normalized = self._normalize_tags(tags, current)
+        styles[safe_style_id] = normalized
+        merchant["updatedAt"] = utc_now()
+        self._write(data)
+        return {
+            "ok": True,
+            "merchantId": safe_merchant_id,
+            "styleId": safe_style_id,
+            "tags": normalized,
+            "styles": styles,
+            "updatedAt": merchant["updatedAt"],
+        }
+
+    def _normalize_tags(self, tags: dict[str, Any], current: dict[str, Any]) -> dict[str, Any]:
+        result = dict(current)
+        if "featuredLabel" in tags:
+            result["featuredLabel"] = str(tags.get("featuredLabel") or "").strip()
+        if "promotionLabel" in tags:
+            result["promotionLabel"] = str(tags.get("promotionLabel") or "").strip()
+        if "promotionOffer" in tags:
+            result["promotionOffer"] = str(tags.get("promotionOffer") or "").strip()
+        if "promotionStrategy" in tags and isinstance(tags.get("promotionStrategy"), dict):
+            result["promotionStrategy"] = tags["promotionStrategy"]
+        result["updatedAt"] = utc_now()
+        return {key: value for key, value in result.items() if value not in {"", None}}
+
+    def _read(self) -> dict[str, Any]:
+        if not self.path.exists():
+            return {}
+        try:
+            with self.path.open("r", encoding="utf-8") as f:
+                parsed = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            return {}
+        return parsed if isinstance(parsed, dict) else {}
+
+    def _write(self, data: dict[str, Any]) -> None:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        with self.path.open("w", encoding="utf-8") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)

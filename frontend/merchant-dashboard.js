@@ -1,4 +1,5 @@
 const API_BASE = "http://127.0.0.1:8000";
+const MERCHANT_STYLE_TAGS_KEY = "merchantStyleTags";
 const CHART_COLORS = {
   text: "#475569",
   strongText: "#0f172a",
@@ -27,6 +28,7 @@ const state = {
   catalogByStyleId: new Map(),
   selectedTag: "",
   featuredStyleId: "",
+  styleTags: {},
   dashboard: null,
   platform: null,
   strategy: null,
@@ -89,6 +91,7 @@ const els = {
 async function init() {
   hydrateMerchantFromLogin();
   await loadCatalog();
+  state.styleTags = loadLocalStyleTags(state.merchantId);
   bindEvents();
   await refreshDashboard();
   renderCampaign();
@@ -238,18 +241,21 @@ function setActiveView(view) {
 async function refreshDashboard() {
   setBusy(true);
   try {
-    const [dashboard, platform] = await Promise.all([
+    const [dashboard, platform, styleTags] = await Promise.all([
       fetchJson(
         `${API_BASE}/api/ops/merchant-dashboard?merchantId=${encodeURIComponent(
           state.merchantId
         )}&windowDays=${state.windowDays}`
       ),
       fetchJson(`${API_BASE}/api/ops/platform-trends?windowDays=${state.windowDays}`),
+      loadRemoteStyleTags(),
     ]);
     state.dashboard = dashboard;
     state.platform = platform;
+    state.styleTags = styleTags;
     renderDashboard();
   } catch {
+    state.styleTags = loadLocalStyleTags(state.merchantId);
     renderOfflineState();
   } finally {
     setBusy(false);
@@ -367,6 +373,11 @@ function renderFeaturedStyle(row) {
   }
   const style = getStyle(row.styleId);
   state.featuredStyleId = state.featuredStyleId || row.styleId;
+  const userTags = state.styleTags[row.styleId] || {};
+  const opsTags = [
+    userTags.featuredLabel ? `<span>${userTags.featuredLabel}</span>` : "",
+    userTags.promotionLabel ? `<span class="is-promotion">${userTags.promotionLabel}</span>` : "",
+  ].join("");
   els.promoteFeaturedButton.disabled = false;
   els.featuredReason.textContent = `试戴率 ${formatPercent(row.tryonRate)} · 点击增长 ${formatSignedPercent(
     row.clickGrowthRate
@@ -377,7 +388,7 @@ function renderFeaturedStyle(row) {
     </div>
     <div class="featured-copy">
       <strong>${style.name}</strong>
-      <div class="featured-tags">${style.tags.map((tag) => `<span>${tag}</span>`).join("")}</div>
+      <div class="featured-tags">${opsTags}${style.tags.map((tag) => `<span>${tag}</span>`).join("")}</div>
       <p>${style.role} · ¥${style.price} · 适合放在首页主推和套餐入口</p>
     </div>
     <dl class="featured-metrics">
@@ -392,6 +403,7 @@ function promoteFeaturedStyle() {
   const row = state.dashboard?.stylePerformance?.[0];
   if (!row) return;
   state.featuredStyleId = row.styleId;
+  setStyleTag(row.styleId, { featuredLabel: "今日主推" });
   els.featuredReason.textContent = `${getStyleName(row.styleId)} 已设为今日主推，建议同步更新店铺首屏和活动文案`;
   renderStyleOps(state.dashboard.stylePerformance || []);
   appendAssistantMessage(`已将 ${getStyleName(row.styleId)} 标记为今日主推。`, "bot");
@@ -418,8 +430,10 @@ function renderStyleOps(styles) {
     .slice(0, 12)
     .map((row, index) => {
       const style = getStyle(row.styleId);
-      const status = row.styleId === state.featuredStyleId ? "今日主推" : style.status;
+      const userTags = state.styleTags[row.styleId] || {};
+      const status = userTags.featuredLabel || (row.styleId === state.featuredStyleId ? "今日主推" : style.status);
       const score = calcOpsScore(row);
+      const promotionTag = userTags.promotionLabel ? `<em class="is-promotion">${userTags.promotionLabel}</em>` : "";
       return `
         <article class="style-ops-card">
           <img src="${style.image}" alt="${style.name}">
@@ -428,13 +442,14 @@ function renderStyleOps(styles) {
             <span>${style.tags.join(" · ")}</span>
             <div class="status-row">
               <em>${status}</em>
+              ${promotionTag}
               <em>${style.role}</em>
               <em>运营分 ${score}</em>
             </div>
           </div>
           <div class="style-ops-actions">
             <button type="button" data-action="feature" data-style-id="${row.styleId}">主推</button>
-            <button type="button" data-action="campaign" data-style-id="${row.styleId}">做活动</button>
+            <button type="button" data-action="campaign" data-style-id="${row.styleId}">促销</button>
             <button type="button" data-action="observe" data-style-id="${row.styleId}">观察</button>
           </div>
         </article>
@@ -451,11 +466,21 @@ function handleStyleAction(action, styleId) {
   const styleName = getStyleName(styleId);
   if (action === "feature") {
     state.featuredStyleId = styleId;
+    setStyleTag(styleId, { featuredLabel: "今日主推" });
     appendAssistantMessage(`${styleName} 已加入今日主推位。`, "bot");
   }
   if (action === "campaign") {
-    state.featuredStyleId = styleId;
     state.campaign = buildCampaignPlan(styleId);
+    setStyleTag(styleId, {
+      promotionLabel: "限时优惠",
+      promotionOffer: state.campaign.offer,
+      promotionStrategy: {
+        title: state.campaign.title,
+        target: state.campaign.target,
+        placement: state.campaign.placement,
+      },
+    });
+    appendAssistantMessage(`${styleName} 已增加促销标签「限时优惠」，用户端款式卡片会同步展示。`, "bot");
     setActiveView("content");
   }
   if (action === "observe") {
@@ -463,6 +488,55 @@ function handleStyleAction(action, styleId) {
   }
   renderStyleOps(state.dashboard?.stylePerformance || []);
   renderCampaign();
+}
+
+async function loadRemoteStyleTags() {
+  try {
+    const data = await fetchJson(`${API_BASE}/api/ops/style-tags?merchantId=${encodeURIComponent(state.merchantId)}`);
+    saveLocalStyleTags(state.merchantId, data.styles || {});
+    return data.styles || {};
+  } catch {
+    return loadLocalStyleTags(state.merchantId);
+  }
+}
+
+function setStyleTag(styleId, tags) {
+  if (!styleId) return;
+  const current = state.styleTags[styleId] || {};
+  const next = { ...current, ...tags, updatedAt: new Date().toISOString() };
+  state.styleTags = { ...state.styleTags, [styleId]: next };
+  saveLocalStyleTags(state.merchantId, state.styleTags);
+  fetchJson(`${API_BASE}/api/ops/style-tags`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      merchantId: state.merchantId,
+      styleId,
+      tags: next,
+    }),
+  }).catch(() => {});
+}
+
+function loadLocalStyleTags(merchantId = "merchant_001") {
+  try {
+    const all = JSON.parse(localStorage.getItem(MERCHANT_STYLE_TAGS_KEY) || "{}");
+    return all[merchantId]?.styles || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveLocalStyleTags(merchantId, styles) {
+  try {
+    const all = JSON.parse(localStorage.getItem(MERCHANT_STYLE_TAGS_KEY) || "{}");
+    all[merchantId] = {
+      styles,
+      updatedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(MERCHANT_STYLE_TAGS_KEY, JSON.stringify(all));
+  } catch {
+    // localStorage may be unavailable in hardened browser modes.
+  }
 }
 
 function buildCampaignPlan(styleId = state.featuredStyleId) {
@@ -971,6 +1045,7 @@ function cleanStrategyTitle(title) {
 function actionText(action) {
   if (!action) return "待执行";
   if (action.type === "set_featured_style") return `主推 ${getStyleName(action.styleId)} ${action.durationDays} 天`;
+  if (action.type === "set_promotion_label") return `促销 ${getStyleName(action.styleId)} · ${action.tag}`;
   if (action.type === "promote_tag") return `推广标签 ${action.tag}`;
   if (action.type === "collect_more_events") return "继续积累试戴行为";
   return action.type || "待执行";

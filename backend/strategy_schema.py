@@ -5,7 +5,7 @@ from typing import Any, Literal
 
 
 STRATEGY_SCHEMA_VERSION = "strategy-recommendation-v1"
-StrategyType = Literal["featured_style", "tag_campaign", "data_collection"]
+StrategyType = Literal["featured_style", "promotion_strategy", "tag_campaign", "data_collection"]
 Confidence = Literal["low", "medium", "high"]
 SignalKind = Literal["style", "tag"]
 
@@ -154,7 +154,12 @@ def validate_strategy_recommendation(recommendation: dict[str, Any]) -> list[str
     errors: list[str] = []
     if recommendation.get("schemaVersion") != STRATEGY_SCHEMA_VERSION:
         errors.append("schemaVersion must be strategy-recommendation-v1")
-    if recommendation.get("strategyType") not in {"featured_style", "tag_campaign", "data_collection"}:
+    if recommendation.get("strategyType") not in {
+        "featured_style",
+        "promotion_strategy",
+        "tag_campaign",
+        "data_collection",
+    }:
         errors.append("strategyType is unsupported")
     if not isinstance(recommendation.get("title"), str) or not recommendation["title"].strip():
         errors.append("title is required")

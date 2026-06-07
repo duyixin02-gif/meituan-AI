@@ -11,7 +11,7 @@ BACKEND = ROOT / "backend"
 if str(BACKEND) not in sys.path:
     sys.path.insert(0, str(BACKEND))
 
-from ops_agent import OpenClawStrategyAdapter, SafetyReviewAgent, StrategyAgent
+from ops_agent import OpenClawStrategyAdapter, PromotionStrategyTool, SafetyReviewAgent, StrategyAgent
 from strategy_schema import STRATEGY_SCHEMA_VERSION, StrategySignal, validate_strategy_recommendation
 from strategy_scoring import StrategyScoringEngine
 
@@ -81,7 +81,10 @@ class StrategyAgentTest(unittest.TestCase):
 
         recommendations = StrategyAgent().generate(dashboard, platform)
 
-        self.assertEqual([item["strategyType"] for item in recommendations], ["featured_style", "tag_campaign"])
+        self.assertEqual(
+            [item["strategyType"] for item in recommendations],
+            ["featured_style", "promotion_strategy", "tag_campaign"],
+        )
         featured = recommendations[0]
         self.assertEqual(featured["schemaVersion"], STRATEGY_SCHEMA_VERSION)
         self.assertEqual(featured["title"], "设置试戴页主推款式")
@@ -90,9 +93,32 @@ class StrategyAgentTest(unittest.TestCase):
         self.assertIn("平台匿名上升趋势", "".join(featured["reason"]))
         self.assertEqual(validate_strategy_recommendation(featured), [])
 
-        campaign = recommendations[1]
+        promotion = recommendations[1]
+        self.assertEqual(promotion["action"]["type"], "set_promotion_label")
+        self.assertEqual(promotion["action"]["styleId"], "style_007")
+        self.assertIn("promotionLabel", promotion["metadata"]["tool"])
+        self.assertEqual(validate_strategy_recommendation(promotion), [])
+
+        campaign = recommendations[2]
         self.assertEqual(campaign["action"]["tag"], "红色")
         self.assertEqual(validate_strategy_recommendation(campaign), [])
+
+    def test_promotion_strategy_tool_generates_conversion_offer(self) -> None:
+        result = PromotionStrategyTool().generate(
+            style={
+                "styleId": "style_009",
+                "styleTags": ["猫眼"],
+                "clickGrowthRate": 0.1,
+                "tryonRate": 0.22,
+                "conversionRate": 0.04,
+            },
+            top_tag={"tag": "猫眼"},
+            platform_tags=[],
+        )
+
+        self.assertEqual(result["promotionLabel"], "试戴转化券")
+        self.assertIn("立减", result["promotionOffer"])
+        self.assertEqual(result["styleId"], "style_009")
 
     def test_generates_data_collection_when_no_signal_exists(self) -> None:
         recommendations = StrategyAgent().generate(

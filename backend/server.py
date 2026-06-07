@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 from assistant_gateway import OfficeAssistantGateway
 from data_agent import DataAgentOrchestrator
 from demo_data import seed_demo_records
-from merchant_ops_store import MerchantOpsStore
+from merchant_ops_store import MerchantOpsStore, MerchantStyleTagStore
 from ops_agent import OpsAnalyticsService
 from seedream_client import SeedreamConfigError, SeedreamRequestError
 from tryon_service import TryonService
@@ -64,6 +64,7 @@ class AppHandler(SimpleHTTPRequestHandler):
                         "/api/ops/strategy/explain",
                         "/api/ops/strategy/accept",
                         "/api/ops/campaign/generate",
+                        "/api/ops/style-tags",
                         "/api/assistant/message",
                         "/api/assistant/capabilities",
                         "/api/ops/demo-data",
@@ -107,6 +108,11 @@ class AppHandler(SimpleHTTPRequestHandler):
             window_days = parse_int(query.get("windowDays"), default=7)
             write_json(self, 200, OpsAnalyticsService().platform_trends(window_days))
             return
+        if parsed.path == "/api/ops/style-tags":
+            query = parse_query(parsed.query)
+            merchant_id = query.get("merchantId", "merchant_001")
+            write_json(self, 200, MerchantStyleTagStore().list_tags(merchant_id))
+            return
         super().do_GET()
 
     def do_POST(self) -> None:
@@ -120,6 +126,7 @@ class AppHandler(SimpleHTTPRequestHandler):
             "/api/ops/strategy/explain",
             "/api/ops/strategy/accept",
             "/api/ops/campaign/generate",
+            "/api/ops/style-tags",
             "/api/assistant/message",
             "/api/ops/demo-data",
         }:
@@ -164,6 +171,19 @@ class AppHandler(SimpleHTTPRequestHandler):
         if parsed.path == "/api/ops/campaign/generate":
             payload["intent"] = "generate_campaign"
             write_json(self, 200, OfficeAssistantGateway().handle_message(payload))
+            return
+
+        if parsed.path == "/api/ops/style-tags":
+            try:
+                result = MerchantStyleTagStore().upsert_style_tags(
+                    str(payload.get("merchantId") or "merchant_001"),
+                    str(payload.get("styleId") or ""),
+                    payload.get("tags") if isinstance(payload.get("tags"), dict) else payload,
+                )
+            except ValueError as exc:
+                write_json(self, 400, {"ok": False, "message": str(exc)})
+            else:
+                write_json(self, 200, result)
             return
 
         if parsed.path == "/api/ops/strategy/accept":

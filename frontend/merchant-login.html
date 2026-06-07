@@ -8,59 +8,44 @@
   </head>
   <body>
     <main class="login-shell">
-      <section class="login-visual" aria-label="商家运营能力预览">
+      <header class="login-brand" aria-label="商家登录中心">
+        <a class="brand-link" href="./index.html" aria-label="返回平台入口">
+          <span class="brand-symbol">AI</span>
+          <span>
+            <strong>美甲 AI 商家中心</strong>
+            <small>Nail Studio Merchant Login</small>
+          </span>
+        </a>
         <nav class="login-nav" aria-label="页面导航">
-          <a href="./index.html">平台入口</a>
           <a href="./user-app.html">用户端</a>
+          <a href="./index.html">入口页</a>
         </nav>
+      </header>
 
-        <div class="visual-copy">
-          <p class="eyebrow">Merchant Analytics</p>
-          <h1>用试戴数据驱动美甲门店经营</h1>
-          <p>查看款式热度、用户偏好、收藏预约转化和平台趋势，把每一次 AI 试戴变成更清晰的运营决策。</p>
-        </div>
+      <section class="login-stage" aria-label="商家账号登录">
+        <aside class="login-guide" aria-hidden="true">登录指南</aside>
 
-        <div class="visual-board" aria-hidden="true">
-          <article class="kpi-card">
-            <span>近 7 天试戴</span>
-            <strong>1,248</strong>
-            <em>+18.4%</em>
-          </article>
-          <article class="kpi-card">
-            <span>预约转化</span>
-            <strong>12.8%</strong>
-            <em>+3.2%</em>
-          </article>
-          <div class="trend-card">
-            <span>热门标签</span>
-            <div><i style="width: 86%"></i><b>法式显白</b></div>
-            <div><i style="width: 72%"></i><b>猫眼高级感</b></div>
-            <div><i style="width: 58%"></i><b>通勤裸感</b></div>
-          </div>
-          <figure class="image-card image-card-hand">
-            <img src="../data/raw/images/hands/hand_002.png" alt="">
-          </figure>
-          <figure class="image-card image-card-style">
-            <img src="../data/raw/images/nail_styles_enhanced/style_003_enhanced.png" alt="">
-          </figure>
-        </div>
-      </section>
-
-      <section class="login-panel" aria-label="商家登录">
         <form id="loginForm" class="login-card" action="./merchant-dashboard.html" method="get" novalidate>
           <div class="login-card-head">
-            <p class="eyebrow">Sign in</p>
-            <h2>登录商家版</h2>
-            <p>请输入商家账号和密码查看运营工作台。</p>
+            <p class="eyebrow">Merchant Access</p>
+            <h1>统一登录中心 Login Center</h1>
+            <p>使用商家账号登录，查看试戴数据、款式表现和运营建议。</p>
+          </div>
+
+          <div class="login-tabs" role="tablist" aria-label="登录方式">
+            <button class="is-active" type="button" role="tab" aria-selected="true">账号密码</button>
+            <button type="button" role="tab" aria-selected="false">扫码</button>
+            <button type="button" role="tab" aria-selected="false">短信</button>
+            <button type="button" role="tab" aria-selected="false">通行密钥</button>
           </div>
 
           <label class="field">
-            <span>用户名</span>
-            <input id="usernameInput" name="merchant" autocomplete="username" value="merchant_001" placeholder="例如 merchant_001">
+            <span>商家账号</span>
+            <input id="usernameInput" name="merchant" autocomplete="username" value="merchant_001" placeholder="请输入商家账号">
           </label>
 
           <label class="field">
-            <span>密码</span>
+            <span>登录密码</span>
             <div class="password-field">
               <input id="passwordInput" name="password" type="password" autocomplete="current-password" value="1234567" placeholder="请输入密码">
               <button id="togglePasswordButton" type="button" aria-label="显示密码">显示</button>
@@ -77,8 +62,8 @@
 
           <p id="formMessage" class="form-message" role="status" aria-live="polite"></p>
 
-          <button class="submit-button" type="submit">登录工作台</button>
-          <a class="demo-login-link" href="./merchant-dashboard.html?merchant=merchant_001">使用演示账号直接进入</a>
+          <button class="submit-button" type="submit">立即登录</button>
+          <a class="demo-login-link" href="./merchant-dashboard.html?merchant=merchant_001">使用演示账号进入</a>
 
           <div class="login-help">
             <span>演示账号：merchant_001</span>
@@ -93,7 +78,7 @@
         <div class="dialog-head">
           <div>
             <h2>找回密码</h2>
-            <p>输入用户名或绑定手机号，我们会发送重置指引。</p>
+            <p>输入商家账号或绑定手机号，我们会发送重置指引。</p>
           </div>
           <button id="forgotCloseButton" type="button" aria-label="关闭">×</button>
         </div>

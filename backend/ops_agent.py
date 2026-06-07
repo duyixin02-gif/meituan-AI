@@ -365,6 +365,7 @@ class OpsAnalyticsService:
 class StrategyAgent:
     def __init__(self, scoring: StrategyScoringEngine | None = None) -> None:
         self.scoring = scoring or StrategyScoringEngine()
+        self.promotion_tool = PromotionStrategyTool()
 
     def generate(self, dashboard: dict[str, Any], platform: dict[str, Any]) -> list[dict[str, Any]]:
         styles = self.scoring.rank_styles(dashboard.get("stylePerformance", []))
@@ -396,6 +397,29 @@ class StrategyAgent:
                     risk=["建议先进行 3 天短周期观察，避免样本量较小时过度调整。"],
                     expectedMetric=ExpectedMetric(primary="tryonRate", secondary="favoriteRate"),
                     confidence=self.scoring.confidence(StrategySignal.from_style(best)),
+                ).to_dict()
+            )
+            promotion = self.promotion_tool.generate(
+                style=best,
+                top_tag=(tags[0] if tags else {}),
+                platform_tags=platform_tags,
+            )
+            recommendations.append(
+                StrategyRecommendation(
+                    strategyType="promotion_strategy",
+                    title=f"为 {best['styleId']} 增加促销标签",
+                    action=StrategyAction(
+                        type="set_promotion_label",
+                        styleId=best["styleId"],
+                        tag=promotion["promotionLabel"],
+                        priority=2,
+                        durationDays=promotion["durationDays"],
+                    ),
+                    reason=promotion["reason"],
+                    risk=promotion["risk"],
+                    expectedMetric=ExpectedMetric(primary="conversionRate", secondary="favoriteRate"),
+                    confidence=self.scoring.confidence(StrategySignal.from_style(best)),
+                    metadata={"tool": promotion},
                 ).to_dict()
             )
 
@@ -433,6 +457,53 @@ class StrategyAgent:
                 ).to_dict()
             )
         return recommendations
+
+
+class PromotionStrategyTool:
+    """Generate a user-facing promotion label and offer from merchant signals."""
+
+    def generate(
+        self,
+        style: dict[str, Any],
+        top_tag: dict[str, Any] | None = None,
+        platform_tags: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
+        style_id = str(style.get("styleId") or "unknown")
+        style_tags = [str(tag) for tag in style.get("styleTags", []) if str(tag).strip()]
+        tag = str((top_tag or {}).get("tag") or (style_tags[0] if style_tags else "热卖")).strip()
+        click_growth = float(style.get("clickGrowthRate") or 0)
+        conversion_rate = float(style.get("conversionRate") or 0)
+        tryon_rate = float(style.get("tryonRate") or 0)
+        platform_names = {str(item.get("tag")) for item in platform_tags or [] if item.get("tag")}
+        platform_match = tag in platform_names or any(item in platform_names for item in style_tags)
+
+        if conversion_rate < 0.08 and tryon_rate >= 0.18:
+            label = "试戴转化券"
+            offer = "试戴后预约立减 20 元"
+            objective = "把高试戴意向转成预约"
+        elif click_growth >= 0.5 or platform_match:
+            label = "限时热推"
+            offer = f"{tag}风格限时 9 折"
+            objective = "承接正在上升的点击热度"
+        else:
+            label = "新客专享"
+            offer = "首次到店立减 15 元"
+            objective = "降低新客首次尝试门槛"
+
+        return {
+            "styleId": style_id,
+            "promotionLabel": label,
+            "promotionOffer": offer,
+            "promotionTag": tag,
+            "durationDays": 5,
+            "objective": objective,
+            "copy": f"{label}｜{offer}，先 AI 试戴再预约。",
+            "reason": [
+                f"{style_id} 当前试戴率为 {tryon_rate:.1%}，点击增长为 {click_growth:.1%}。",
+                f"建议使用“{label}”作为用户端促销标签，目标是{objective}。",
+            ],
+            "risk": ["促销力度需要结合门店成本、服务时长和库存人工复核。"],
+        }
 
 class SafetyReviewAgent:
     def review(self, recommendations: list[dict[str, Any]]) -> list[dict[str, Any]]:

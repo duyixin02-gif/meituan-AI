@@ -413,6 +413,12 @@ button:disabled {
   font-weight: 800;
 }
 
+.featured-tags span.is-promotion,
+.status-row em.is-promotion {
+  background: #fce7f3;
+  color: #be185d;
+}
+
 .featured-metrics {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1810,6 +1816,9 @@ select {
 }
 
 .page-tabs {
+  align-self: flex-start;
+  justify-content: flex-start;
+  width: fit-content;
   border-color: var(--line);
   background: #fff;
   box-shadow: none;

@@ -1,4 +1,5 @@
 const API_BASE = "http://127.0.0.1:8000";
+const MERCHANT_STYLE_TAGS_KEY = "merchantStyleTags";
 const TRYON_UPLOAD_MAX_SIDE = 1536;
 const TRYON_UPLOAD_JPEG_QUALITY = 0.9;
 const TRYON_CROP_PADDING_RATIO = 0.16;
@@ -117,6 +118,7 @@ const state = {
   lastAiError: "",
   history: [],
   compareItems: [],
+  merchantStyleTags: {},
   favorites: loadStorage("tryonFavorites", []),
   progressTimer: null,
   progressValue: 0,
@@ -176,6 +178,7 @@ const els = {
 async function init() {
   const payload = window.NAIL_TRYON_CATALOG || (await loadCatalogFromJson());
   state.catalog = (payload.styles || []).map(enrichStyle);
+  state.merchantStyleTags = await loadMerchantStyleTags();
   state.filteredCatalog = state.catalog;
   els.styleCount.textContent = `${state.catalog.length} 款`;
   bindEvents();
@@ -230,6 +233,12 @@ function bindEvents() {
 function renderStyleList() {
   els.styleList.innerHTML = "";
   state.filteredCatalog.forEach((style) => {
+    const userTags = state.merchantStyleTags[style.styleId] || {};
+    const visibleTags = [
+      userTags.featuredLabel ? `<span class="style-user-tag is-featured">${userTags.featuredLabel}</span>` : "",
+      userTags.promotionLabel ? `<span class="style-user-tag is-promotion">${userTags.promotionLabel}</span>` : "",
+    ].join("");
+    const offer = userTags.promotionOffer ? `<div class="style-offer">${userTags.promotionOffer}</div>` : "";
     const button = document.createElement("button");
     button.className = "style-card";
     button.type = "button";
@@ -244,6 +253,8 @@ function renderStyleList() {
         </div>
         <span class="style-badge">¥${style.price}</span>
       </div>
+      ${visibleTags ? `<div class="style-user-tags">${visibleTags}</div>` : ""}
+      ${offer}
       <div class="style-card-foot">
         <span>${style.duration}</span>
         <strong>${style.popularity} 热度</strong>
@@ -253,6 +264,42 @@ function renderStyleList() {
     els.styleList.appendChild(button);
   });
   highlightSelectedCard();
+}
+
+async function loadMerchantStyleTags() {
+  try {
+    const response = await fetch(`${API_BASE}/api/ops/style-tags?merchantId=merchant_001`);
+    const data = await response.json();
+    if (response.ok && data.ok !== false) {
+      saveLocalMerchantStyleTags(data.styles || {});
+      return data.styles || {};
+    }
+  } catch {
+    // Static file usage falls back to localStorage tags set by the merchant page.
+  }
+  return loadLocalMerchantStyleTags();
+}
+
+function loadLocalMerchantStyleTags() {
+  try {
+    const all = JSON.parse(localStorage.getItem(MERCHANT_STYLE_TAGS_KEY) || "{}");
+    return all.merchant_001?.styles || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveLocalMerchantStyleTags(styles) {
+  try {
+    const all = JSON.parse(localStorage.getItem(MERCHANT_STYLE_TAGS_KEY) || "{}");
+    all.merchant_001 = {
+      styles,
+      updatedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(MERCHANT_STYLE_TAGS_KEY, JSON.stringify(all));
+  } catch {
+    // localStorage may be unavailable in hardened browser modes.
+  }
 }
 
 function setFilter(filter) {

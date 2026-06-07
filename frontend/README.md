@@ -29,9 +29,9 @@
 - `merchant-dashboard.js`
 - `assets/catalog.js`
 
-直接用浏览器打开 `frontend/index.html` 会先进入平台入口，再选择用户端或商家端。
+直接用浏览器打开 `frontend/index.html` 会看到两个独立入口链接。
 
-用户端可直接打开 `frontend/user-app.html`。商家端可直接打开 `frontend/merchant-dashboard.html`。
+用户端可直接打开 `frontend/user-app.html` 使用试戴功能。商家端需要先打开 `frontend/merchant-login.html` 登录，再进入 `frontend/merchant-dashboard.html`。
 
 用户端当前能力：
 

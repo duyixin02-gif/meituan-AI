@@ -11,6 +11,7 @@ const forgotCloseButton = document.querySelector("#forgotCloseButton");
 const forgotCancelButton = document.querySelector("#forgotCancelButton");
 const recoverInput = document.querySelector("#recoverInput");
 const recoverMessage = document.querySelector("#recoverMessage");
+const loginTabs = document.querySelectorAll(".login-tabs button");
 
 const params = new URLSearchParams(window.location.search);
 const usernameFromUrl = params.get("merchant") || params.get("username") || "";
@@ -25,6 +26,21 @@ if (usernameFromUrl || savedUsername) {
 if (passwordFromUrl) {
   passwordInput.value = passwordFromUrl;
 }
+
+loginTabs.forEach((tab) => {
+  tab.addEventListener("click", () => {
+    loginTabs.forEach((item) => {
+      item.classList.toggle("is-active", item === tab);
+      item.setAttribute("aria-selected", item === tab ? "true" : "false");
+    });
+
+    if (tab.textContent.trim() !== "账号密码") {
+      showFormMessage(`${tab.textContent.trim()}登录暂未接入，请先使用账号密码登录。`);
+    } else {
+      showFormMessage("");
+    }
+  });
+});
 
 togglePasswordButton.addEventListener("click", () => {
   const isPassword = passwordInput.type === "password";
